@@ -1,0 +1,74 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f0f0f0;
+}
+
+#container {
+    max-width: 400px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #fff;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+#fileInput {
+    display: none;
+}
+
+label, button {
+    display: block;
+    background-color: #3498db;
+    border: none;
+    color: #fff;
+    text-align: center;
+    padding: 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    margin: 5px 0px;
+}
+button {
+    width: 100%;
+}
+
+label:hover, button:hover {
+    background-color: #2980b9;
+}
+
+#imagePreview, #volume {
+    display: none;
+    text-align: center;
+}
+
+#previewImage {
+    max-width: 100%;
+    max-height: 300px;
+}
+
+#imageInfo {
+    font-size: 14px;
+}
+
+.loader {
+    border: 8px solid #f3f3f3; /* Светлый цвет для круглой рамки */
+    border-top: 8px solid #3498db; /* Синий цвет для верхней границы */
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: spin 2s linear infinite; /* Анимация вращения */
+    display: none; /* По умолчанию скрыто */
+    margin: 15px 0px;
+}
+
+.loading {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
