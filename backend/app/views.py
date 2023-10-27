@@ -41,7 +41,7 @@ class NNView(APIView):
         redis_instance.set(f"work_{redis_key}", str([]))
         print('./app/uploads/' + filename)
         print(filename, file)
-        make_nn_task.delay(redis_key, filename)
+        make_nn_task(redis_key, filename)
         status_value = redis_instance.get(f"status_{redis_key}")
         work_value = redis_instance.get(f"work_{redis_key}")
 
@@ -75,8 +75,7 @@ def make_nn_task(redis_key, file):
     redis_instance.set(f"status_{redis_key}", 'run')
 
     model = YOLO(path)
-    im1 = Image.open('./uploads/' + file)
-
+    im1 = Path('./uploads/' + file)
     model.predict(source=im1, save=True, conf=0.4,project='yolo', name=redis_key)
     work_list = loads(redis_instance.get(f"work_{redis_key}"))
 
