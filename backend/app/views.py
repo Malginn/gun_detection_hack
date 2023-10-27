@@ -41,10 +41,12 @@ class NNView(APIView):
         redis_instance.set(f"work_{redis_key}", str([]))
         print('./app/uploads/' + filename)
         print(filename, file)
-        make_nn_task(redis_key, filename)
+        make_nn_task.delay(redis_key, filename)
         status_value = redis_instance.get(f"status_{redis_key}")
         work_value = redis_instance.get(f"work_{redis_key}")
+
         return Response({
+            "redis_key": redis_key,
             "status_value": status_value.decode("utf-8"),
             "work_value": work_value.decode("utf-8")
         })  # Return a proper HTTP 200 response
@@ -52,9 +54,8 @@ class NNView(APIView):
 
 class TaskView(APIView):
     def get(self, request):
-
         task_key = request.GET.get('task_key')
-
+        print(task_key)
         redis_instance = redis.StrictRedis(host=settings.REDIS_HOST,
                                            port=settings.REDIS_PORT)
 
@@ -63,6 +64,8 @@ class TaskView(APIView):
         return Response({"status": status_value.decode("utf-8"), "work": work_value.decode("utf-8")})
 
 
+
+@shared_task
 def make_nn_task(redis_key, file):
     path = Path('./app/modelnn.pt')
     print(redis_key)
@@ -73,10 +76,24 @@ def make_nn_task(redis_key, file):
 
     model = YOLO(path)
     im1 = Image.open('./uploads/' + file)
-    results = model.predict(source=im1, save=True, conf=0.4,project='yolo', name=redis_key)  # save plotted images in runs/detect/predict
 
+    model.predict(source=im1, save=True, conf=0.4,project='yolo', name=redis_key)
     work_list = loads(redis_instance.get(f"work_{redis_key}"))
 
     work_list.append(f"./yolo/{redis_key}/")
     redis_instance.set(f"work_{redis_key}", work_list[0])
     redis_instance.set(f"status_{redis_key}", 'done')
+
+
+class RedisKeyListView(APIView):
+    def get(self, request):
+        # Подключение к Redis
+        redis_instance = redis.StrictRedis(host=settings.REDIS_HOST, port=settings.REDIS_PORT)
+
+        # Получение всех ключей в Redis
+        all_redis_keys = redis_instance.keys('*')
+
+        # Преобразование байтовых ключей в строки
+        all_redis_keys = [key.decode('utf-8') for key in all_redis_keys]
+
+        return Response({"redis_keys": all_redis_keys})
