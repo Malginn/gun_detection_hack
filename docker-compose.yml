@@ -1,0 +1,56 @@
+version: '3.4'
+services:
+  backend:
+    container_name: nn_kucha
+    build:
+      context: backend/
+    command: bash -c "python /app/manage.py makemigrations app && python /app/manage.py migrate --noinput && python /app/manage.py runserver 0.0.0.0:8000"
+    #command: bash -c "python app.py"
+    volumes:
+      - ./backend/:/usr/src/app/
+      - ./backend/uploads/:/app/uploads/
+    ports:
+      - 8000:8000
+    restart:
+      on-failure
+    networks:
+      - front_back
+    links:
+      - redis
+    depends_on:
+      - redis
+
+  frontend:
+    build:
+      context: Frontend/
+    ports:
+      - 80:80
+    depends_on:
+      - backend
+    restart:
+      on-failure
+    networks:
+      - front_back
+
+  redis:
+    container_name: redis
+    image: "redis:alpine"
+    networks:
+      - front_back
+
+  celery:
+    build:
+      context: backend/
+    command: celery -A backend worker -l info
+    volumes:
+      - ./backend/:/usr/src/app/
+      - ./backend/uploads/:/app/uploads/
+    depends_on:
+      - redis
+    networks:
+      - front_back
+    links:
+      - redis
+
+networks:
+  front_back:
