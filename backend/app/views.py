@@ -63,24 +63,6 @@ class TaskView(APIView):
         return Response({"status": status_value.decode("utf-8"), "work": work_value.decode("utf-8")})
 
 
-class GeneratedPhotosView(APIView):
-    def get(self, request, redis_key):
-        redis_instance = redis.StrictRedis(host=settings.REDIS_HOST, port=settings.REDIS_PORT)
-        result_paths = redis_instance.get(f"results_{redis_key}")
-
-        if result_paths:
-            result_paths = result_paths.decode('utf-8').split(",")
-            # Здесь вы можете обработать result_paths и собрать фотографии для отправки на фронтенд
-
-            # Например, вы можете создать список URL-ов к фотографиям
-            photo_urls = [request.build_absolute_uri(result_path) for result_path in result_paths]
-
-            return Response({"photos": photo_urls})
-        else:
-            return Response({"photos": []})
-
-
-
 def make_nn_task(redis_key, file):
     path = Path('./app/modelnn.pt')
     print(redis_key)
@@ -95,7 +77,6 @@ def make_nn_task(redis_key, file):
 
     work_list = loads(redis_instance.get(f"work_{redis_key}"))
 
-    work_list.append(f"./yolo/{redis_key}.jpg")
-    print(str(work_list))
+    work_list.append(f"./yolo/{redis_key}/")
     redis_instance.set(f"work_{redis_key}", work_list[0])
     redis_instance.set(f"status_{redis_key}", 'done')
