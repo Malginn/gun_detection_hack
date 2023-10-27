@@ -7,6 +7,7 @@ services:
     command: bash -c "python /app/manage.py makemigrations app && python /app/manage.py migrate --noinput && python /app/manage.py runserver 0.0.0.0:8000"
     #command: bash -c "python app.py"
     volumes:
+      - ./backend/:/app/
       - ./backend/:/usr/src/app/
       - ./backend/uploads/:/app/uploads/
     ports:
@@ -43,6 +44,7 @@ services:
       context: backend/
     command: celery -A backend worker -l info
     volumes:
+      - ./backend/:/app/
       - ./backend/:/usr/src/app/
       - ./backend/uploads/:/app/uploads/
     depends_on:
