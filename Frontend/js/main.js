@@ -82,32 +82,54 @@ function uploadFile() {
         // Опции для запроса
         var options = {
             method: 'PUT',
-            body: formData,
+            body: formData
         };
         showLoadingIndicator()
         // Выполняем запрос к серверу
         fetch('http://localhost:8000/api/nn/', options)
             .then(response => response.json())
             .then(data => {
-            console.log(data)
-                // Скрываем индикатор загрузки
-                hideLoadingIndicator();
-                var generatedNumber = data.generated_number;
-
-                // Отображаем сгенерированное число с анимацией
-                animateNumber(generatedNumber);
-                var volume = document.getElementById('volume');
-                volume.style.display = 'block';
+                
+                check(data['task_key'])
             })
             .catch(error => {
                 console.error('Ошибка:', error);
-                // Скрываем индикатор загрузки
-                hideLoadingIndicator();
             });
     } else {
         alert('Пожалуйста, выберите файл для загрузки.');
     }
 }
+
+
+function check (task) {
+var options = {
+    method: 'GET'
+};
+fetch('http://localhost:8000/api/task/?task_key='+task, options)
+.then(data => {
+    //console.log(data.works)
+    
+
+var volume = document.getElementById('volume');
+volume.style.display = 'block';
+// Скрываем индикатор загрузки
+    // Скрываем индикатор загрузки
+            if (data['status'] !== 'done') {
+        
+                setTimeout(function () {
+                    check(task);
+                }, 5000); // 5000 миллисекунд = 5 секунд
+            } else {
+                hideLoadingIndicator();
+            }
+
+})
+.catch(error => {
+console.error('Ошибка:', error);
+// Скрываем индикатор загрузки
+hideLoadingIndicator();
+});
+                }
 
 function animateNumber(number) {
     var volumeH = document.querySelector('#volume h1');
