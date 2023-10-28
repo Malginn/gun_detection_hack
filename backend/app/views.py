@@ -153,18 +153,22 @@ class serve_video(APIView):
 
         # Получите имя видеофайла из Redis
         filename = redis_instance.get(f"work_{task_key}")
+        print(filename)
         if filename:
             # Преобразуйте значение в строку
             filename_str = filename.decode("utf-8")
 
-            # Удалите одинарные кавычки из начала и конца строки, если они есть
-            filename_str = filename_str[2:-2]
-            content_type = "video/mp4"
+            # Если значение является списком, возьмите первый элемент
+            filename_str = Path(filename_str[2:-2])
 
-            # Создайте HTML-код для вставки видео в браузер
-            video_html = f'<video width="640" height="360" controls><source src="{filename_str}" type="{content_type}">Your browser does not support the video tag.</video>'
+            # Определите MIME-тип для видео (например, video/mp4)
+            content_type = "video/mp4"  # Замените на соответствующий тип для вашего видеоформата
 
-            return HttpResponse(video_html, content_type="text/html")
+            # Отправите видеофайл как HTTP-ответ
+            response = HttpResponse(open(filename_str, 'rb'), content_type=content_type)
+            response['Content-Disposition'] = f'attachment; filename="{filename_str}"'
+
+            return response
         else:
             # Обработка ситуации, когда имя файла не найдено в Redis
             return HttpResponseNotFound("Файл не найден в Redis")
