@@ -23,9 +23,13 @@ def make_nn_task(redis_key, file):
     model.predict(source=im1, save=True, conf=0.4,project='yolo', name=redis_key)
     work_list = loads(redis_instance.get(f"work_{redis_key}"))
 
-    work_list.append(f"./yolo/{redis_key}/")
-    redis_instance.set(f"work_{redis_key}", work_list[0])
+    work_list.append(f"./yolo/{redis_key}/{file}")
+    redis_instance.set(f"work_{redis_key}", str(work_list))
     redis_instance.set(f"status_{redis_key}", 'done')
+
+    src_path = f"./yolo/{redis_key}/"
+    link_path = f"../Frontend/yolo/{redis_key}/"  # Замените на нужное вам имя
+    os.symlink(src_path, link_path)
 
 @shared_task
 def archive_task(redis_key, array_path):
@@ -35,15 +39,18 @@ def archive_task(redis_key, array_path):
                                        port=settings.REDIS_PORT)
 
     redis_instance.set(f"status_{redis_key}", 'run')
-    arra_photo = []
+    array_photo = []
     for i in range(len(array_path)):
         img = Image.open(array_path[i])
-        arra_photo.append(img)
+        array_photo.append(img)
 
     model = YOLO(path)
-    model.predict(source=arra_photo, save=True, conf=0.3,project='yolo', name=redis_key)
+    model.predict(source=array_photo, save=True, conf=0.3,project='yolo', name=redis_key)
     work_list = loads(redis_instance.get(f"work_{redis_key}"))
 
-    work_list.append(f"./yolo/{redis_key}/")
-    redis_instance.set(f"work_{redis_key}", work_list[0])
+    for item in range(len(array_photo)):
+        new_item = f"./yolo/{redis_key}/{item}.jpg"
+        work_list.append(new_item)
+
+    redis_instance.set(f"work_{redis_key}", str(work_list))
     redis_instance.set(f"status_{redis_key}", 'done')

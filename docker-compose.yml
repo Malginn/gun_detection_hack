@@ -32,7 +32,8 @@ services:
       on-failure
     networks:
       - front_back
-
+    volumes:
+      - ./backend/:/app/
   redis:
     container_name: redis
     image: "redis:alpine"
