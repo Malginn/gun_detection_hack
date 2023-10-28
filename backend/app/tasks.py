@@ -33,7 +33,7 @@ def make_nn_task(redis_key, file):
 
 @shared_task
 def archive_task(redis_key, array_path):
-    path = Path('./app/best_nano88.pt')
+    path = Path('./app/valid_big_final.pt')
     print(redis_key)
     redis_instance = redis.StrictRedis(host=settings.REDIS_HOST,
                                        port=settings.REDIS_PORT)
