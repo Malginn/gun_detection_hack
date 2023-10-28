@@ -6,7 +6,7 @@ import redis
 from ultralytics import YOLO
 from PIL import Image
 from pathlib import Path
-
+import shutil
 
 
 @shared_task
@@ -27,8 +27,17 @@ def make_nn_task(redis_key, file):
     redis_instance.set(f"work_{redis_key}", str(work_list))
     redis_instance.set(f"status_{redis_key}", 'done')
 
-    src_path = f"./yolo/{redis_key}/"
-    link_path = f"../Frontend/yolo/{redis_key}/"  # Замените на нужное вам имя
+    src_path = Path(f"./yolo/{redis_key}/")
+
+
+    os.chdir("..")
+
+    link_path = Path(f"./Frontend/yolo/{redis_key}/")
+    # Проверяем, существует ли папка link_path
+    if not os.path.exists(link_path):
+        os.makedirs(link_path)
+
+    # Создаем символическую ссылку
     os.symlink(src_path, link_path)
 
 @shared_task
