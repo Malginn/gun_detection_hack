@@ -1,3 +1,4 @@
+import ast
 from random import randint
 from datetime import datetime
 import zipfile
@@ -11,6 +12,12 @@ import redis
 from setuptools.config._validate_pyproject import ValidationError
 
 from .tasks import make_nn_task, archive_task
+from django.http import FileResponse, HttpResponseNotFound, HttpResponse
+from django.conf import settings
+import os
+from PIL import Image
+import io
+from pathlib import Path
 
 
 class NNView(APIView):
@@ -52,9 +59,6 @@ class TaskView(APIView):
         status_value = redis_instance.get(f"status_{task_key}")
         work_value = redis_instance.get(f"work_{task_key}")
         return Response({"status": status_value.decode("utf-8"), "work": work_value.decode("utf-8")})
-
-
-
 
 
 class RedisKeyListView(APIView):
@@ -105,3 +109,62 @@ class ArchveNN(APIView):
             "status_value": status_value.decode("utf-8"),
             "work_value": work_value.decode("utf-8")
         })
+
+
+class serve_media(APIView):
+    def get(self, request):
+        task_key = request.GET.get('task_key')
+        redis_instance = redis.StrictRedis(host=settings.REDIS_HOST, port=settings.REDIS_PORT)
+
+        # Получите имя файла из Redis и преобразуйте его в список
+        filename = redis_instance.get(f"work_{task_key}")
+        if filename:
+            filename_list = ast.literal_eval(filename.decode("utf-8"))
+
+            if filename_list:
+                # Извлеките первый путь к файлу из списка
+                file_path = filename_list[0]
+
+                # Откройте изображение
+                image = Image.open(file_path)
+
+                # Создайте буфер для сохранения изображения
+                image_buffer = io.BytesIO()
+                image.save(image_buffer, format='JPEG')
+
+                # Перематываете буфер к началу
+                image_buffer.seek(0)
+
+                # Создайте HTTP-ответ и отправьте изображение
+                response = HttpResponse(image_buffer.read(), content_type='image/jpeg')
+                return response
+            else:
+                # Обработка ситуации, когда список пуст
+                return HttpResponseNotFound("Список файлов пуст")
+        else:
+            # Обработка ситуации, когда имя файла не найдено в Redis
+            return HttpResponseNotFound("Файл не найден в Redis")
+
+
+class serve_video(APIView):
+    def get(self, request):
+        task_key = request.GET.get('task_key')
+        redis_instance = redis.StrictRedis(host=settings.REDIS_HOST, port=settings.REDIS_PORT)
+
+        # Получите имя видеофайла из Redis
+        filename = redis_instance.get(f"work_{task_key}")
+        if filename:
+            # Преобразуйте значение в строку
+            filename_str = filename.decode("utf-8")
+
+            # Удалите одинарные кавычки из начала и конца строки, если они есть
+            filename_str = filename_str[2:-2]
+            content_type = "video/mp4"
+
+            # Создайте HTML-код для вставки видео в браузер
+            video_html = f'<video width="640" height="360" controls><source src="{filename_str}" type="{content_type}">Your browser does not support the video tag.</video>'
+
+            return HttpResponse(video_html, content_type="text/html")
+        else:
+            # Обработка ситуации, когда имя файла не найдено в Redis
+            return HttpResponseNotFound("Файл не найден в Redis")
