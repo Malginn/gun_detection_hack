@@ -11,7 +11,7 @@ import shutil
 
 @shared_task
 def make_nn_task(redis_key, file):
-    path = Path('./app/modelnn.pt')
+    path = Path('./app/valid_small_final2.pt')
     print(redis_key)
     redis_instance = redis.StrictRedis(host=settings.REDIS_HOST,
                                        port=settings.REDIS_PORT)
