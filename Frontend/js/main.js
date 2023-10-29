@@ -67,7 +67,7 @@ function uploadFile() {
         if(fileExtension === 'zip')
         {
             // Выполняем запрос к серверу
-            fetch('http://localhost:8000/api/archive/', options)
+            fetch('http://62.64.112.66:8000/api/archive/', options)
                 .then(response => response.json())
                 .then(data => {
                     check(data['redis_key'])
@@ -79,7 +79,7 @@ function uploadFile() {
         else
         {
             // Выполняем запрос к серверу
-            fetch('http://localhost:8000/api/nn/', options)
+            fetch('http://62.64.112.66:8000/api/nn/', options)
                 .then(response => response.json())
                 .then(data => {
                     check(data['redis_key'])
@@ -98,7 +98,7 @@ function check (task) {
     var options = {
         method: 'GET'
     };
-    fetch('http://localhost:8000/api/task/?task_key='+task, options)
+    fetch('http://62.64.112.66:8000/api/task/?task_key='+task, options)
         .then(response => response.json())
         .then(data => {
             console.log(data['status'])
@@ -122,10 +122,10 @@ function check (task) {
                 // Проверяем расширение файла
                 if (filename.match(/\.(mp4)$/)) {
                     console.log('video')
-                    preview.innerHTML = '<video src="http://localhost:8000/api/video/?task_key='+task+'" width="80%" controls autoplay></video>';
+                    preview.innerHTML = '<video src="http://62.64.112.66:8000/api/video/?task_key='+task+'" width="80%" controls autoplay></video>';
                 } else if (filename.match(/\.(jpg|jpeg|png)$/)) {
                     console.log('file')
-                    preview.innerHTML = '<img src="http://localhost:8000/api/media/?task_key='+task+'" style="width: 100%; border-radius: 13px;">';
+                    preview.innerHTML = '<img src="http://62.64.112.66:8000/api/media/?task_key='+task+'" style="width: 100%; border-radius: 13px;">';
                 }
             }
         })
